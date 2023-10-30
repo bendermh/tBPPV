@@ -1,0 +1,121 @@
+<?xml version='1.0' encoding='utf-8'?>
+<interface version="1.3">
+  <object class="tk.Toplevel" id="mainwindow" named="True">
+    <property name="resizable">none</property>
+    <property name="takefocus">true</property>
+    <property name="title" translatable="yes">Select Device</property>
+    <child>
+      <object class="ttk.Frame" id="frame1">
+        <property name="height">200</property>
+        <property name="padding">5</property>
+        <property name="width">200</property>
+        <layout manager="pack">
+          <property name="side">top</property>
+        </layout>
+        <child>
+          <object class="ttk.Label" id="label1">
+            <property name="font">{Courier New} 20 {}</property>
+            <property name="text" translatable="yes">IMU Connect</property>
+            <layout manager="pack">
+              <property name="side">top</property>
+            </layout>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="ttk.Frame" id="frame2">
+        <property name="height">100</property>
+        <property name="padding">5</property>
+        <property name="width">200</property>
+        <layout manager="pack">
+          <property name="anchor">nw</property>
+          <property name="fill">x</property>
+          <property name="side">top</property>
+        </layout>
+        <child>
+          <object class="tk.Text" id="consoTx" named="True">
+            <property name="background">#000000</property>
+            <property name="blockcursor">false</property>
+            <property name="font">{Courier New} 10 {}</property>
+            <property name="foreground">#00ff00</property>
+            <property name="height">25</property>
+            <property name="padx">1</property>
+            <property name="pady">1</property>
+            <property name="width">50</property>
+            <layout manager="pack">
+              <property name="anchor">nw</property>
+              <property name="padx">5</property>
+              <property name="pady">5</property>
+              <property name="side">left</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="ttk.Button" id="rescanBtn" named="True">
+            <property name="command" type="command" cbtype="simple">scan</property>
+            <property name="text" translatable="yes">SCAN</property>
+            <layout manager="pack">
+              <property name="anchor">ne</property>
+              <property name="padx">10</property>
+              <property name="pady">5</property>
+              <property name="side">top</property>
+            </layout>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="ttk.Frame" id="frame3">
+        <property name="height">200</property>
+        <property name="width">200</property>
+        <layout manager="pack">
+          <property name="fill">x</property>
+          <property name="side">top</property>
+        </layout>
+        <child>
+          <object class="ttk.Label" id="label3">
+            <property name="font">{Courier New} 10 {}</property>
+            <property name="text" translatable="yes">Selected device </property>
+            <layout manager="pack">
+              <property name="padx">5</property>
+              <property name="side">left</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="ttk.Entry" id="devNum" named="True">
+            <property name="font">{Courier New} 10 {}</property>
+            <property name="width">6</property>
+            <layout manager="pack">
+              <property name="side">left</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="ttk.Button" id="blinnk" named="True">
+            <property name="command" type="command" cbtype="simple">blink</property>
+            <property name="text" translatable="yes">Test &amp; select IMU</property>
+            <layout manager="pack">
+              <property name="padx">40</property>
+              <property name="pady">10</property>
+              <property name="side">left</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="ttk.Button" id="save" named="True">
+            <property name="command" type="command" cbtype="simple">saveExit</property>
+            <property name="default">active</property>
+            <property name="text" translatable="yes">Save &amp; Exit</property>
+            <layout manager="pack">
+              <property name="padx">40</property>
+              <property name="pady">10</property>
+              <property name="side">left</property>
+            </layout>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>
