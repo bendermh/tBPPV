@@ -21,11 +21,13 @@ from mbientlab.warble import *
 import six
 import collections
 import numpy as np
+from scipy.spatial.transform import Rotation
 
 # Implement the default Matplotlib key bindings for plots.
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk)
 from matplotlib.backend_bases import key_press_handler
 from matplotlib.figure import Figure
+import matplotlib.pyplot as plt
 
 PROJECT_PATH = pathlib.Path(__file__).parent
 PROJECT_UI = PROJECT_PATH /"GUI"/ "mainTBPPV.ui"
@@ -70,6 +72,13 @@ class tBPPVMain:
         self.timeLast = None
         self.samplingInterval = 0.01 # minimum time in secs to read IMU data 0.01 are 65Hz aprox
         self.timeIMUSetup = 2.1 # delay in seconds to stream data to avoid IMU setup empty samples
+        self.livePlotBuffer = 500 #items in livePlotArray
+        self.lPlotYmin = -360
+        self.lPlotYmax = 360
+        self.plotLiveTime = collections.deque(np.zeros(self.livePlotBuffer))
+        self.plotLiveX = collections.deque(np.zeros(self.livePlotBuffer))
+        self.plotLiveY = collections.deque(np.zeros(self.livePlotBuffer))
+        self.plotLiveZ = collections.deque(np.zeros(self.livePlotBuffer))
         
         #load images
         aux = Image.open(PROJECT_IMU_PIC)
@@ -82,9 +91,9 @@ class tBPPVMain:
         self.realDataX = collections.deque(np.zeros(10))
         
         # Setup matplotlib canvas
-        ancho = 6
+        ancho = 8
         alto = 3
-        self.figureLivePlot = fig = Figure(figsize=(ancho, alto), dpi=100)
+        self.figureLivePlot = fig = Figure(figsize=(ancho, alto), dpi=72)
         self.canvasLivePlot = canvas = FigureCanvasTkAgg(fig, master=livePlot)
         canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
         
@@ -93,6 +102,10 @@ class tBPPVMain:
         self.toolbar.update()
         canvas._tkcanvas.pack(side=tk.TOP, fill=tk.BOTH, expand=0)
         
+        #Define liveplot
+        self.lPlot = self.figureLivePlot.add_subplot(111)
+        self.lPlot.set_facecolor('#DEDEDE')
+        self.lPlot.set_ylim([self.lPlotYmin,self.lPlotYmax])
         #debug plot
         #a = self.figureLivePlot.add_subplot(111)
         #a.plot(self.realDataTime,self.realDataX)
@@ -213,42 +226,35 @@ class tBPPVMain:
             if self.isIMUConected:
                 if (self.timeLast-self.timeConnect) > self.timeIMUSetup: # add a little delay to stream data to avoid setup empty samples
                     self.rawSample = parse_value(data)
-                    self.sample = ((self.timeLast-self.timeConnect)-self.timeIMUSetup,(self.rawSample.w,self.rawSample.x,self.rawSample.y,self.rawSample.z))
-                    print(self.sample)
+                    euler = self.quat_to_euler(self.rawSample.w,self.rawSample.x, self.rawSample.y,self.rawSample.z)
+                    self.sample = ((self.timeLast-self.timeConnect)-self.timeIMUSetup,euler)
+                    
+                    #pass sample to plot data array
+                    self.plotLiveTime.popleft()
+                    self.plotLiveX.popleft()
+                    self.plotLiveY.popleft()
+                    self.plotLiveZ.popleft()
+                    self.plotLiveTime.append(self.sample[0])
+                    self.plotLiveX.append(self.sample[1][0])
+                    self.plotLiveY.append(self.sample[1][1])
+                    self.plotLiveZ.append(self.sample[1][2])
             self.timeLast = time.time()
             
 
     def plotSample(self):
         if self.isIMUConected:
-            #print(self.sample)
-            pass
+            self.lPlot.cla()
+            self.lPlot.set_ylim([self.lPlotYmin,self.lPlotYmax])
+            self.lPlot.plot(self.plotLiveTime,self.plotLiveX)
+            self.lPlot.plot(self.plotLiveTime,self.plotLiveY)
+            self.lPlot.plot(self.plotLiveTime,self.plotLiveZ)
+            self.canvasLivePlot.draw()
         
     def quat_to_euler(self, w, x, y, z):
-        ysqr = y * y
-
-        t0 = +2.0 * (w * x + y * z)
-        t1 = +1.0 - 2.0 * (x * x + ysqr)
-        X = np.degrees(np.arctan2(t0, t1))
-
-        t2 = +2.0 * (w * y - z * x)
-
-        t2 = np.clip(t2, a_min=-1.0, a_max=1.0)
-        Y = np.degrees(np.arcsin(t2))
-
-        t3 = +2.0 * (w * z + x * y)
-        t4 = +1.0 - 2.0 * (ysqr + z * z)
-        Z = np.degrees(np.arctan2(t3, t4))
-
-        return X, Y, Z  
-    
-        # # ALTERNATIVE
-        # import pandas as pd
-        # from scipy.spatial.transform import Rotation
-
-        # rot = Rotation.from_quat(quat_df)
-        # rot_euler = rot.as_euler('xyz', degrees=True)
-        # euler_df = pd.DataFrame(data=rot_euler, columns=['x', 'y', 'z'])
-        
+        quater = [x,y,z,w]
+        rot = Rotation.from_quat(quater)
+        euler = rot.as_euler('xyz', degrees = True)
+        return euler
     
     def loopEvents(self):
         #print("Event " + str(time.localtime().tm_sec))
